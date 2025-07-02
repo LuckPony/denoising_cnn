@@ -17,16 +17,19 @@ class RealImageDataset(Dataset):
         self.clean_root_dir = clean_root_dir
         self.transform = transform
         # 支持的文件类型：.png, .jpg, .jpeg
-        self.image_files = [f for f in os.listdir(root_dir) 
+        self.image_files1 = [f for f in os.listdir(root_dir) 
+                          if f.endswith(('.png', '.jpg', '.jpeg'))]
+        self.image_files2 = [f for f in os.listdir(clean_root_dir) 
                           if f.endswith(('.png', '.jpg', '.jpeg'))]
 
     def __len__(self):
-        return len(self.image_files)
+        return len(self.image_files1)
 
     def __getitem__(self, idx):
-        img_name = self.image_files[idx]
-        noisy_img_path = os.path.join(self.root_dir, img_name)
-        clean_img_path = os.path.join(self.clean_root_dir, img_name)
+        img_name1 = self.image_files1[idx]
+        img_name2 = self.image_files2[idx]
+        noisy_img_path = os.path.join(self.root_dir, img_name1)
+        clean_img_path = os.path.join(self.clean_root_dir, img_name2)
         
         # 使用PIL库打开图像，转换为灰度图像模式'L'
         noisy_image = Image.open(noisy_img_path).convert('L')  # 带噪声图像

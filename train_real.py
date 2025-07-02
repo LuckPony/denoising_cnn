@@ -5,14 +5,14 @@ from tqdm import tqdm
 from model import DenoisingCNN
 from preData_real import get_real_data_loader
 
-def train_model(model,dataloader,criterion, optimizer, model_save_path, epochs=10):
+def train_model(model,dataloader,criterion, optimizer, model_save_path, epochs):
     """训练去噪模型
     
     Args:
         model (nn.Module): 定义的模型
         dataloader (DataLoader): 训练数据加载器，提供数据对
         criterion (nn.Module): 设置的损失函数
-        optimizer：训练的优化器设置
+        optimizer:训练的优化器设置
         model_save_path (str): 模型保存路径
         epochs (int): 训练轮数
     """
@@ -60,10 +60,10 @@ if __name__ == '__main__':
     # 配置参数
     data_dir = 'data/train/noisy'  # 带噪声的真实图像数据目录
     clean_data_dir = 'data/train/groundTruth'  # 对应的干净图像数据目录
-    model_save_path = 'models/denoising_cnn.pth'  # 模型保存路径
+    epochs = 10  # 训练轮数
+    model_save_path = f'models/denoising_cnn_{epochs}epoch.pth'  # 模型保存路径
     batch_size = 16  # 批处理大小
     shuffle = True  # 是否在每个epoch开始时打乱数据
-    epochs = 10  # 训练轮数
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # 自动选择设备
      # 初始化模型并移动到指定设备
     model = DenoisingCNN().to(device)
@@ -74,4 +74,4 @@ if __name__ == '__main__':
     dataloader = get_real_data_loader(data_dir, clean_data_dir, batch_size, shuffle)
     
     # 开始训练
-    train_model(model,dataloader, device,criterion, optimizer, model_save_path, epochs)
+    train_model(model,dataloader,criterion, optimizer, model_save_path, epochs)

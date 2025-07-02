@@ -55,6 +55,6 @@ if __name__ == '__main__':
     for epoch in range(epochs):
         loss = train(model, dataloader, criterion, optimizer, device)
         print(f"Epoch {epoch+1}/{epochs}, Loss: {loss:.4f}")
-    outdir = f'denoising_cnn_{epochs}epoch.pth'
+    outdir = f'models/denoising_cnn_{epochs}epoch.pth'
     # Save model
     torch.save(model.state_dict(), outdir)
