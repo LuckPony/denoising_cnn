@@ -5,9 +5,7 @@ from model import DenoisingCNN
 from torchvision import transforms
 from PIL import Image
 import numpy as np
-from skimage.metrics import peak_signal_noise_ratio as psnr
-from skimage.metrics import structural_similarity as ssim
-import cv2
+
 def load_model(model_path, device):
     """加载训练好的模型"""
     model = DenoisingCNN().to(device)
@@ -42,11 +40,10 @@ def denormalize(tensor):  #进行反归一化
     result = np.clip(result, 0, 255).astype(np.uint8)
     return result
 
-def test_model(model, dataloader, device, output_dir,ground_truth_dir):
+def test_model(model, dataloader, device, output_dir):
     """测试模型并对测试图像去噪"""
     os.makedirs(output_dir, exist_ok=True)
-    ground_truth_list = [f for f in os.listdir(ground_truth_dir) if f.endswith(('.jpg'))]
-    ground_img = np.array(Image.open(os.path.join(ground_truth_dir, ground_truth_list[0])))
+
     with torch.no_grad():  # 不需要计算梯度
         for i, inputs in enumerate(tqdm(dataloader,desc="Testing",total=len(dataloader))):
             inputs = inputs.to(device)
@@ -74,15 +71,11 @@ def test_model(model, dataloader, device, output_dir,ground_truth_dir):
             # 使用denormalize函数将数据从[-1,1]恢复到[0,255]
             input_img = denormalize(inputs[0].cpu())
             output_img = denormalize(outputs[0].cpu())
-            input_img = input_img.squeeze(-1)
-            output_img = output_img.squeeze(-1)
-            ssim_value = ssim(output_img, ground_img,data_range=255)
-            psnr_value = psnr(output_img, ground_img,data_range=255)
-            print(f" SSIM: {ssim_value:.4f}, PSNR: {psnr_value:.4f}")
+            
             
             # 保存输入图像和去噪后的输出图像
-            Image.fromarray(input_img, mode='L').save(os.path.join(output_dir, f'input_{i+1}.png'))
-            Image.fromarray(output_img, mode='L').save(os.path.join(output_dir, f'output_{i+1}.png'))
+            Image.fromarray(input_img.squeeze(-1),mode='L').save(os.path.join(output_dir, f'input_{i+1}.png'))
+            Image.fromarray(output_img).save(os.path.join(output_dir, f'output_{i+1}.png'))
 
     print(f"Results saved to {output_dir}")
 
@@ -91,7 +84,6 @@ if __name__ == '__main__':
     data_dir = 'data/test/gray'  # 测试图像所在目录
     model_path = 'denoising_cnn_10epoch.pth'  # 模型权重路径
     output_dir = 'data/test_result'  # 结果保存目录
-    ground_truth_dir = 'data/test/gray'
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 数据预处理
@@ -102,10 +94,10 @@ if __name__ == '__main__':
 
     # 创建数据集和数据加载器
     dataset = DenoisingDataset(data_dir, transform=transform)
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)  #shuffle控制是否随机打乱
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)
 
     # 加载模型
     model = load_model(model_path, device)
 
     # 执行测试并保存结果
-    test_model(model, dataloader, device, output_dir,ground_truth_dir)
+    test_model(model, dataloader, device, output_dir)

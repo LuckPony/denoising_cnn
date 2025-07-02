@@ -14,7 +14,7 @@ class SyntheticDenoisingDataset(Dataset):
         clean_image = np.random.rand(*self.img_size).astype(np.float32)
         
         # Add some noise
-        noisy_image = clean_image + np.random.normal(0, 0.1, self.img_size).astype(np.float32)
+        noisy_image = clean_image + np.random.normal(0, 0.5, self.img_size).astype(np.float32)
         
         # Clip values to [0, 1]
         noisy_image = np.clip(noisy_image, 0, 1)
